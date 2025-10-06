@@ -1,4 +1,21 @@
+networks:
+  nextcloudnet:
+
+
 services:
+  db:
+    image: postgres:16
+    container_name: nextcloud-db
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloudpass
+    volumes:
+      - /srv/nextcloud/db:/var/lib/postgresql/data
+    networks:
+      - nextcloudnet
+
   nextcloud:
     image: lscr.io/linuxserver/nextcloud:latest
     container_name: nextcloud
@@ -6,9 +23,17 @@ services:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
+      - POSTGRES_DB=nextcloud
+      - POSTGRES_USER=nextcloud
+      - POSTGRES_PASSWORD=nextcloudpass
+      - POSTGRES_HOST=db
     volumes:
       - /srv/nextcloud/config:/config
       - /srv/nextcloud/data:/data
     ports:
       - 443:443
     restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - nextcloudnet
